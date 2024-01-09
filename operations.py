@@ -1,4 +1,4 @@
-def add(a, b, Z):
+def add(a:int, b:int):
     """Add two numbers."""
     return a + b + Z
 
