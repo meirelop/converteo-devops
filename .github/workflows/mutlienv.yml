@@ -16,11 +16,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Set up Environment
-        run: echo "Environment=DEV" >> $GITHUB_ENV
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@main
+        with:
+          version: 'latest'
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Deploy to DEV Environment
-        run: echo ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - name: Create Bucket and Text File
+        run: |
+            # Define variables
+            REPO_NAME=$(basename $GITHUB_REPOSITORY)
+            ENVIRONMENT_NAME="${{ github.event.inputs.environment_name }}" # Use the input variable for the environment name
+            BUCKET_NAME="$REPO_NAME-$ENVIRONMENT_NAME"
+            TEXT_FILE_NAME="$REPO_NAME-$ENVIRONMENT_NAME.txt"
+
+            # Create GCS bucket
+            gsutil mb gs://$BUCKET_NAME
+
+            # Create a text file with the same name
+            echo "This is a $ENVIRONMENT_NAME environment text file" > $TEXT_FILE_NAME
+            gsutil cp $TEXT_FILE_NAME gs://$BUCKET_NAME
+
+            # Output bucket and text file names
+            echo "Created bucket: $BUCKET_NAME"
+            echo "Created text file: $TEXT_FILE_NAME"
 
   qa:
     name: Deploy to QA
