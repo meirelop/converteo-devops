@@ -1,47 +1,49 @@
-name: Advanced Workflow
+name: Deploy Workflow
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - dev   # Trigger for dev branch
+      - main  # Trigger for main (prod) branch
 
+      
 jobs:
-  build:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - run: echo "Building the project"
-
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Run unit tests
-      run: python -m unittest discover -s arithmetics/tests -p 'test_*.py'
-
   deploy:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'workflow_dispatch'
     steps:
-    - uses: actions/checkout@v2
-    - run: echo "Deploying to production"
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Determine Environment
+        id: env
+        run: |
+          if [[ ${{ github.ref }} == "refs/heads/dev" ]]; then
+            echo "Environment=dev" >> $GITHUB_ENV
+          else
+            echo "Environment=prod" >> $GITHUB_ENV
+          fi
+
+      - name: Set up GCP Connection
+        run: |
+          if [[ "${{ env.Environment }}" == "dev" ]]; then
+            # For dev environment
+            gcloud auth activate-service-account --key-file=key.json
+            gcloud config set project ${{ secrets.DEV_GCP_PROJECT_ID }}
+          else
+            # For prod environment
+            gcloud auth activate-service-account --key-file=key.json
+            gcloud config set project ${{ secrets.PROD_GCP_PROJECT_ID }}
+          fi
+
+      - name: Deploy to GCS
+        run: |
+          # Use the determined environment to create the appropriate file
+          if [[ "${{ env.Environment }}" == "dev" ]]; then
+            echo "This is the dev environment." > dev.txt
+          else
+            echo "This is the prod environment." > prod.txt
+          fi
+          
+          # Upload files to GCS bucket (replace with your actual bucket name)
+          gsutil cp dev.txt gs://your-dev-bucket/
+          gsutil cp prod.txt gs://your-prod-bucket/

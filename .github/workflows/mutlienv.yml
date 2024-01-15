@@ -8,6 +8,7 @@ on:
       branches: '*' # Include all branches
 
 
+
 jobs:
   dev:
     name: Deploy to DEV
