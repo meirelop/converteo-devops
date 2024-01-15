@@ -3,4 +3,5 @@
 *.ipr
 *.iws
 __pycache__/
-venv/
+venv*/
+.vscode/
