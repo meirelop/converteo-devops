@@ -7,8 +7,6 @@ on:
     pull_request: # Trigger on any PR, regardless of the branch
       branches: '*' # Include all branches
 
-
-
 jobs:
   dev:
     name: Deploy to DEV
