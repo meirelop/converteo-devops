@@ -7,6 +7,7 @@ on:
     pull_request: # Trigger on any PR, regardless of the branch
       branches: '*' # Include all branches
 
+      
 jobs:
   dev:
     name: Deploy to DEV
@@ -16,18 +17,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@main
         with:
           version: 'latest'
-          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           project_id: ${{ env.GCP_PROJECT_ID }}
 
       - name: Create Bucket and Text File
         run: |
             # Define variables
             REPO_NAME=$(basename $GITHUB_REPOSITORY)
-            ENVIRONMENT_NAME="${{ github.event.inputs.environment_name }}" # Use the input variable for the environment name
+            ENVIRONMENT_NAME="dev"
             BUCKET_NAME="$REPO_NAME-$ENVIRONMENT_NAME"
             TEXT_FILE_NAME="$REPO_NAME-$ENVIRONMENT_NAME.txt"
 
