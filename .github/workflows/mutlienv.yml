@@ -7,7 +7,7 @@ on:
     pull_request: # Trigger on any PR, regardless of the branch
       branches: '*' # Include all branches
 
-      
+
 jobs:
   dev:
     name: Deploy to DEV
@@ -27,25 +27,6 @@ jobs:
         with:
           version: 'latest'
           project_id: ${{ env.GCP_PROJECT_ID }}
-
-      - name: Create Bucket and Text File
-        run: |
-            # Define variables
-            REPO_NAME=$(basename $GITHUB_REPOSITORY)
-            ENVIRONMENT_NAME="dev"
-            BUCKET_NAME="$REPO_NAME-$ENVIRONMENT_NAME"
-            TEXT_FILE_NAME="$REPO_NAME-$ENVIRONMENT_NAME.txt"
-
-            # Create GCS bucket
-            gsutil mb gs://$BUCKET_NAME
-
-            # Create a text file with the same name
-            echo "This is a $ENVIRONMENT_NAME environment text file" > $TEXT_FILE_NAME
-            gsutil cp $TEXT_FILE_NAME gs://$BUCKET_NAME
-
-            # Output bucket and text file names
-            echo "Created bucket: $BUCKET_NAME"
-            echo "Created text file: $TEXT_FILE_NAME"
 
   qa:
     name: Deploy to QA
