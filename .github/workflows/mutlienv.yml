@@ -1,0 +1,53 @@
+name: Multi-Environment Workflow
+
+on:
+    push:
+      branches:
+        - main
+    pull_request: # Trigger on any PR, regardless of the branch
+      branches: '*' # Include all branches
+
+jobs:
+  dev:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    environment: DEV
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Environment
+        run: echo "Environment=DEV" >> $GITHUB_ENV
+
+      - name: Deploy to DEV Environment
+        run: echo ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+  qa:
+    name: Deploy to QA
+    runs-on: ubuntu-latest
+    environment: QA
+    needs: dev
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Environment
+        run: echo "Environment=QA" >> $GITHUB_ENV
+
+      - name: Deploy to QA Environment
+        run: echo ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+  prod:
+    name: Deploy to PROD
+    runs-on: ubuntu-latest
+    environment: PROD
+    needs: qa
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Environment
+        run: echo "Environment=PROD" >> $GITHUB_ENV
+
+      - name: Deploy to PROD Environment
+        run: echo ${{ secrets.GCP_SERVICE_ACCOUNT }}
