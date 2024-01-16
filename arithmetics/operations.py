@@ -8,6 +8,7 @@ def subtract(a, b, c):
     return a - b - c
 
 
-def multiply(a, b):
-    """Multiply two numbers."""
-    return a * b
+def multiply(a, b, c):
+    """Multiply three numbers.
+    """
+    return a * b * c
