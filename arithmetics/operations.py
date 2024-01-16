@@ -8,14 +8,13 @@ def subtract(a, b, c):
     return a - b - c
 
 
-def multiply(a, b, c):
-    """Multiply three numbers.
+def multiply(a, b):
+    """Multiply two numbers.
     """
-    return a * b * c
+    return a * b
 
 
-def divide(a,b):
+def divide(a, b):
     """Divide two numbers.
     """
     return a / b
-
