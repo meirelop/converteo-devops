@@ -1,49 +1,66 @@
-name: Deploy Workflow
+name: Basic CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - dev   # Trigger for dev branch
-      - main  # Trigger for main (prod) branch
+    branches: [ main ]
+  pull_request:
+    branches: '*'
 
-      
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Determine Environment
-        id: env
-        run: |
-          if [[ ${{ github.ref }} == "refs/heads/dev" ]]; then
-            echo "Environment=dev" >> $GITHUB_ENV
-          else
-            echo "Environment=prod" >> $GITHUB_ENV
-          fi
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10.12'
 
-      - name: Set up GCP Connection
-        run: |
-          if [[ "${{ env.Environment }}" == "dev" ]]; then
-            # For dev environment
-            gcloud auth activate-service-account --key-file=key.json
-            gcloud config set project ${{ secrets.DEV_GCP_PROJECT_ID }}
-          else
-            # For prod environment
-            gcloud auth activate-service-account --key-file=key.json
-            gcloud config set project ${{ secrets.PROD_GCP_PROJECT_ID }}
-          fi
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Deploy to GCS
-        run: |
-          # Use the determined environment to create the appropriate file
-          if [[ "${{ env.Environment }}" == "dev" ]]; then
-            echo "This is the dev environment." > dev.txt
-          else
-            echo "This is the prod environment." > prod.txt
-          fi
-          
-          # Upload files to GCS bucket (replace with your actual bucket name)
-          gsutil cp dev.txt gs://your-dev-bucket/
-          gsutil cp prod.txt gs://your-prod-bucket/
+    - name: Build step
+      run: echo "Running build step"
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        flake8 arithmetics/
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run tests
+      run: |
+        pip install pytest
+        pip install pytest-pythonpath
+        pytest
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Deploy to Production (example)
+      run: echo "Deploy your application"
