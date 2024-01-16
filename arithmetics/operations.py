@@ -12,3 +12,10 @@ def multiply(a, b, c):
     """Multiply three numbers.
     """
     return a * b * c
+
+
+def divide(a,b):
+    """Divide two numbers.
+    """
+    return a / b
+
